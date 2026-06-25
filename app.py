@@ -8,169 +8,169 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 # ==========================================
-# 1. PAGE SETUP & STYLE
+# 1. ENTERPRISE ENGINEERING HUD (UI STYLE)
 # ==========================================
-st.set_page_config(page_title="Machine Model Comparator", layout="wide")
+st.set_page_config(page_title="Predictive Maintenance HUD", layout="wide")
 
+# Custom Dark Cyberpunk Theme for Mechanical Labs
 st.markdown("""
     <style>
-    .main { background-color: #050505; color: white; }
-    h1, h2, h3 { color: #00ff88 !important; }
-    .stButton>button { background-color: #00ff88; color: black; font-weight: bold; }
-    div[data-testid="stMetricValue"] { color: #00ff88 !important; }
+    .main { background-color: #030712; color: #f3f4f6; }
+    h1, h2, h3 { color: #00ffaa !important; font-family: 'Courier New', monospace; }
+    .stNumberInput label { color: #9ca3af !important; font-weight: bold; }
+    div[data-testid="stMetricValue"] { color: #00ffaa !important; font-family: 'Courier New', monospace; }
+    .status-card { padding: 20px; border-radius: 10px; border: 1px solid #1f2937; margin-bottom: 15px; }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🏭 Multi-Model Machine Learning Comparator")
-st.subheader("Predictive Maintenance Benchmarking & Diagnostics")
+st.title("⚡ TELEMETRY DIAGNOSTIC COMPONENT BENCHMARKER")
+st.subheader("Automated Predictive Maintenance Engine v2.4 (Multi-Model Evaluation)")
 
 # ==========================================
-# 2. SIMULATE INDUSTRIAL DATASETS (AI4I 2020 Structure)
+# 2. DATA PIPELINE (PHYSICS SYNTHESIS)
 # ==========================================
 @st.cache_data
-def load_industrial_data():
+def generate_telemetry_data():
     np.random.seed(42)
-    n_samples = 5000
+    n_samples = 6000
     
-    # Simulating core physics-based features
-    air_temp = np.random.normal(300, 2, n_samples)
-    process_temp = air_temp + np.random.normal(10, 1, n_samples)
-    rot_speed = np.random.normal(1500, 150, n_samples)
-    torque = np.random.normal(40, 10, n_samples)
-    tool_wear = np.random.randint(0, 240, n_samples)
+    # Simulating standard operational limits of a milling spindle
+    air_temp = np.random.normal(298, 3, n_samples)
+    process_temp = air_temp + np.random.normal(10, 1.5, n_samples)
+    rot_speed = np.random.normal(1500, 200, n_samples)
+    torque = np.random.normal(40, 12, n_samples)
+    tool_wear = np.random.randint(0, 250, n_samples)
     
-    # Logic to create failures (Torque > 65.5 or Temp > 305 or Tool Wear > 200)
+    # Establish strict physical failure boundaries (Torque Overload or Thermal Runaway)
     failure = np.zeros(n_samples)
     for i in range(n_samples):
-        if torque[i] > 65.5 or air_temp[i] > 305 or tool_wear[i] > 200:
-            if np.random.rand() > 0.15: # 85% chance to mark as failure under strain
+        if torque[i] > 65.5 or air_temp[i] > 305 or tool_wear[i] > 210:
+            if np.random.rand() > 0.10:  # 90% true physics failure correlation
                 failure[i] = 1
                 
     df = pd.DataFrame({
-        'Air_Temp_K': air_temp,
-        'Process_Temp_K': process_temp,
-        'Rotational_Speed_RPM': rot_speed,
-        'Torque_Nm': torque,
-        'Tool_Wear_Min': tool_wear,
-        'Machine_Failure': failure
+        'Air_Temp_K': air_temp, 'Process_Temp_K': process_temp,
+        'Rotational_Speed_RPM': rot_speed, 'Torque_Nm': torque,
+        'Tool_Wear_Min': tool_wear, 'Machine_Failure': failure
     })
     return df
 
-df = load_industrial_data()
-
-# Prepare Data
+df = generate_telemetry_data()
 X = df[['Air_Temp_K', 'Process_Temp_K', 'Rotational_Speed_RPM', 'Torque_Nm', 'Tool_Wear_Min']]
 y = df['Machine_Failure']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # ==========================================
-# 3. TRAIN THREE COMPETING MODELS
+# 3. CONCURRENT MACHINE LEARNING ENGINES
 # ==========================================
 @st.cache_resource
-def train_models():
-    # Model 1: Decision Tree (Our standard baseline)
+def build_virtual_test_benches():
+    # Model 1: White-Box Decision Tree
     dt = DecisionTreeClassifier(max_depth=4, random_state=42)
     dt.fit(X_train, y_train)
     
-    # Model 2: Random Forest (Ensemble method - typically higher accuracy)
-    rf = RandomForestClassifier(n_estimators=50, max_depth=5, random_state=42)
+    # Model 2: Multi-Tree Ensemble Random Forest
+    rf = RandomForestClassifier(n_estimators=100, max_depth=6, random_state=42)
     rf.fit(X_train, y_train)
     
-    # Model 3: Logistic Regression (Linear baseline)
-    lr = LogisticRegression(max_iter=500, random_state=42)
+    # Model 3: Linear Feature Boundary (Logistic Regression)
+    lr = LogisticRegression(max_iter=1000, random_state=42)
     lr.fit(X_train, y_train)
     
     return dt, rf, lr
 
-dt_model, rf_model, lr_model = train_models()
+dt_bench, rf_bench, lr_bench = build_virtual_test_benches()
 
-# Evaluate Metrics
-def get_metrics(model):
+def process_metrics(model):
     preds = model.predict(X_test)
     return {
-        'Accuracy': accuracy_score(y_test, preds),
-        'Precision': precision_score(y_test, preds, zero_division=0),
-        'Recall': recall_score(y_test, preds, zero_division=0),
-        'F1': f1_score(y_test, preds, zero_division=0)
+        'Acc': accuracy_score(y_test, preds),
+        'Prec': precision_score(y_test, preds, zero_division=0),
+        'Rec': recall_score(y_test, preds, zero_division=0)
     }
 
-metrics_dt = get_metrics(dt_model)
-metrics_rf = get_metrics(rf_model)
-metrics_lr = get_metrics(lr_model)
+m_dt = process_metrics(dt_bench)
+m_rf = process_metrics(rf_bench)
+m_lr = process_metrics(lr_bench)
 
 # ==========================================
-# 4. DASHBOARD INTERFACE LAYOUT
+# 4. HIGH-TECH PERFORMANCE HUD DISPLAY
 # ==========================================
 st.write("---")
-st.header("📊 Model Accuracy Comparison Matrix")
-st.write("Evaluate which algorithm handles the data with the highest precision.")
+st.header("📊 ALGORITHM EFFICIENCY MATRIX")
+st.write("Real-time telemetry evaluation metrics across independent diagnostic engines.")
 
-# Showcase metrics in parallel columns
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown("### 🌲 Decision Tree")
-    st.metric(label="Accuracy", value=f"{metrics_dt['Accuracy']*100:.2f}%")
-    st.text(f"Precision: {metrics_dt['Precision']*100:.1f}%\nRecall: {metrics_dt['Recall']*100:.1f}%")
-    st.caption("White-Box Auditability. Follows rigid If-Then pathways.")
+    st.markdown("### 🌲 Single-Node Decision Tree")
+    st.metric(label="System Accuracy", value=f"{m_dt['Acc']*100:.2f}%")
+    st.markdown(f"**Precision:** {m_dt['Prec']*100:.1f}% | **Recall:** {m_dt['Rec']*100:.1f}%")
+    st.caption("Fast execution, follows auditable engineering logic steps.")
 
 with col2:
-    st.markdown("### 🚀 Random Forest")
-    st.metric(label="Accuracy (🏆 Winner)", value=f"{metrics_rf['Accuracy']*100:.2f}%")
-    st.text(f"Precision: {metrics_rf['Precision']*100:.1f}%\nRecall: {metrics_rf['Recall']*100:.1f}%")
-    st.caption("Ensemble Method. Higher accuracy, protects against outliers.")
+    st.markdown("### 🚀 Multi-Tree Random Forest (🏆 Top-Rated)")
+    st.metric(label="System Accuracy", value=f"{m_rf['Acc']*100:.2f}%")
+    st.markdown(f"**Precision:** {m_rf['Prec']*100:.1f}% | **Recall:** {m_rf['Rec']*100:.1f}%")
+    st.caption("Ensemble architecture. Extremely robust against sensor anomalies.")
 
 with col3:
-    st.markdown("### 📈 Logistic Regression")
-    st.metric(label="Accuracy", value=f"{metrics_lr['Accuracy']*100:.2f}%")
-    st.text(f"Precision: {metrics_lr['Precision']*100:.1f}%\nRecall: {metrics_lr['Recall']*100:.1f}%")
-    st.caption("Linear Classification. Fast, but misses non-linear physics relationships.")
+    st.markdown("### 📈 Linear Logistic Regression")
+    st.metric(label="System Accuracy", value=f"{m_lr['Acc']*100:.2f}%")
+    st.markdown(f"**Precision:** {m_lr['Prec']*100:.1f}% | **Recall:** {m_lr['Rec']*100:.1f}%")
+    st.caption("Standard gradient boundary. Missing intricate physics intersections.")
 
 # ==========================================
-# 5. USER TELEMETRY INPUTS FOR REAL-TIME SIMULATION
+# 5. REAL-TIME SENSOR CONTROL BOARD
 # ==========================================
 st.write("---")
-st.header("⚙️ Real-Time Telemetry Testing")
-st.write("Input custom values to test how the 3 different algorithms interpret the risk.")
+st.header("🎛️ SIMULATED TELEMETRY CONTROL PANEL")
+st.write("Manipulate physical parameters below to execute an immediate stress-test diagnostic across all engines.")
 
-input_col1, input_col2 = st.columns(2)
+pane1, pane2 = st.columns(2)
 
-with input_col1:
-    torque_in = st.number_input("Torque (Nm)", min_value=-50.0, max_value=500.0, value=45.0, step=1.0)
-    air_temp_in = st.number_input("Air Temperature (K)", min_value=0.0, max_value=400.0, value=298.0, step=0.5)
-    process_temp_in = st.number_input("Process Temperature (K)", min_value=0.0, max_value=400.0, value=308.0, step=0.5)
+with pane1:
+    torque = st.number_input("🔬 Torque (Nm)", min_value=-50.0, max_value=600.0, value=42.0, step=0.5)
+    air_temp = st.number_input("🌡️ Air Ambient Temperature (K)", min_value=100.0, max_value=500.0, value=298.15, step=0.1)
+    process_temp = st.number_input("🔥 Process Tool Temperature (K)", min_value=100.0, max_value=500.0, value=308.15, step=0.1)
 
-with input_col2:
-    rpm_in = st.number_input("Rotational Speed (RPM)", min_value=0.0, max_value=5000.0, value=1500.0, step=50.0)
-    tool_wear_in = st.number_input("Tool Wear (Minutes)", min_value=0, max_value=500, value=60, step=1)
+with pane2:
+    speed = st.number_input("⚙️ Spindle Rotational Speed (RPM)", min_value=0.0, max_value=6000.0, value=1500.0, step=25.0)
+    wear = st.number_input("⏳ Cumulative Tool Wear Time (Minutes)", min_value=0, max_value=500, value=45, step=1)
 
-# Format the live input array
-user_features = np.array([[air_temp_in, process_temp_in, rpm_in, torque_in, tool_wear_in]])
+# Format the input telemetry stream
+telemetry_stream = np.array([[air_temp, process_temp, speed, torque, wear]])
 
 # ==========================================
-# 6. DIVERGENT PREDICTION OUTCOMES
+# 6. INSTANT TRI-MODEL DIAGNOSIS & VERDICT
 # ==========================================
-if st.button("Execute Cross-Model Diagnosis"):
-    st.write("### Prediction Results Matrix:")
+st.write("---")
+if st.button("🔴 RUN REAL-TIME LIVE CROSS-MODEL EVALUATION"):
+    st.subheader("⚙️ Live Diagnostic Streams")
     
-    res_col1, res_col2, res_col3 = st.columns(3)
+    out1, out2, out3 = st.columns(3)
     
-    def display_status(prediction):
-        if prediction[0] == 0:
-            return "🟢 HEALTHY"
+    p_dt = dt_bench.predict(telemetry_stream)[0]
+    p_rf = rf_bench.predict(telemetry_stream)[0]
+    p_lr = lr_bench.predict(telemetry_stream)[0]
+    
+    def render_hud_banner(pred):
+        if pred == 0:
+            return "<div style='color:#00ffaa; font-weight:bold; font-size:20px;'>🟢 SYSTEM CRITICAL STATUS: OPERATIONAL</div>"
         else:
-            return "🔴 FAILURE LIKELY"
+            return "<div style='color:#ff3333; font-weight:bold; font-size:20px;'>🔴 ALERT: STRUCTURAL FAILURE RISK CAUGHT</div>"
 
-    with res_col1:
-        pred_dt = dt_model.predict(user_features)
-        st.markdown(f"**Decision Tree Says:**\n### {display_status(pred_dt)}")
-        
-    with res_col2:
-        pred_rf = rf_model.predict(user_features)
-        st.markdown(f"**Random Forest Says:**\n### {display_status(pred_rf)}")
-        
-    with res_col3:
-        pred_lr = lr_model.predict(user_features)
-        st.markdown(f"**Logistic Regression Says:**\n### {display_status(pred_lr)}")
+    with out1:
+        st.markdown(f"<div class='status-card'><b>Decision Tree Node Verdict:</b><br><br>{render_hud_banner(p_dt)}</div>", unsafe_allow_html=True)
+    with out2:
+        st.markdown(f"<div class='status-card'><b>Random Forest Node Verdict:</b><br><br>{render_hud_banner(p_rf)}</div>", unsafe_allow_html=True)
+    with out3:
+        st.markdown(f"<div class='status-card'><b>Linear Regression Verdict:</b><br><br>{render_hud_banner(p_lr)}</div>", unsafe_allow_html=True)
 
-    st.info("⚠️ **Why are results different?** Linear models (Logistic Regression) look for straight cutoffs. Tree models split on numerical thresholds. Random Forest looks at consensus across 50 separate mini-trees, making it the most robust when you enter extreme values.")
+    # High-Tech Recommendation Summary Engine
+    st.write("### 🧠 Automated Engineering Recommendation:")
+    votes = [p_dt, p_rf, p_lr]
+    if sum(votes) >= 2:
+        st.error("🚨 CRITICAL MAINTENANCE VERDICT: Multi-engine consensus confirms mechanical or thermal parameters have breached threshold boundaries. Schedule structural teardown and component replacement immediately.")
+    else:
+        st.success("✅ OPTIMAL PERFORMANCE VERDICT: Core telemetry remains within calculated safe physics bounds. Machine can maintain full operational load.")
