@@ -1,176 +1,193 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import plotly.graph_objects as go
 
 # ==========================================
-# 1. ENTERPRISE ENGINEERING HUD (UI STYLE)
+# 1. THE CERTIFIED 50 MACHINE TOOL DATASET
 # ==========================================
-st.set_page_config(page_title="Predictive Maintenance HUD", layout="wide")
+data = {
+    "Machine Name": [
+        "DMG MORI NVX 5100", "Mikron MILL P 500", "Mazak VARIAXIS i-600", "Okuma MU-5000V", 
+        "Hermle C 42 U", "GROB G350", "Doosan DNM 6700", "Haas UMC-750", 
+        "Hurco VMX 60Ui", "Fidia K211", "Fanuc Robodrill α-D21LiA", "Brother Speedio S700X1", 
+        "Mitsubishi M-VR30", "Kitamura Mycenter-4X", "Makino PS95", "Sodick MC430L", 
+        "Yamazaki Mazak HCN-5000", "Okuma Genos M560V", "Haas VF-4SS", "Hurco VMX 42i",
+        "Mazak QT-350", "DMG MORI NLX 2500", "Okuma LB3000 EX", "Doosan Lynx 2100", 
+        "Haas ST-20", "Miyano BNA-42S", "Nakamura-Tome WY-150", "Tsugami B0205", 
+        "Citizen Cincom L20", "Hardings GS 51", "Trumpf TruLaser 3030", "Bystronic ByStar Fiber", 
+        "Amada LCG 3015", "Mazak OPTIPLEX 3015", "Prima Power Platino", "Salvagnini L3", 
+        "Mitsubishi eX-F Series", "Cincinnati CL-900", "Nukon Fiber Vento", "HK Laser Fiber",
+        "Haas Mini Mill", "Tormach 1100MX", "Pocket NC V2-50", "Syil X7", 
+        "Bantam Tools Desktop", "Stepcraft D.840", "Axiom Precision AR8", "Laguna SmartShop", 
+        "Baileigh CNC Router", "ShopBot Alpha"
+    ],
+    "Price ($)": [
+        185000, 245000, 210000, 230000, 280000, 260000, 95000, 145000, 165000, 320000,
+        85000, 78000, 115000, 135000, 155000, 195000, 140000, 110000, 92000, 105000,
+        125000, 145000, 135000, 65000, 58000, 110000, 175000, 85000, 120000, 75000,
+        350000, 420000, 290000, 310000, 280000, 390000, 330000, 260000, 195000, 210000,
+        35000, 18500, 6500, 28000, 4999, 6500, 9500, 15000, 12500, 22000
+    ],
+    "Max Spindle Speed (RPM)": [
+        12000, 20000, 18000, 15000, 24000, 16000, 12000, 10000, 12000, 30000,
+        24000, 16000, 10000, 15000, 20000, 40000, 14000, 15000, 12000, 12000,
+        5000, 6000, 5000, 6000, 4000, 6000, 5000, 8000, 10000, 5000,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, # Lasers operate at negligible spindle velocity
+        6000, 10000, 50000, 12000, 28000, 24000, 24000, 24000, 18000, 18000
+    ],
+    "Tolerance (µm)": [
+        3.0, 1.5, 2.5, 2.0, 1.0, 2.0, 5.0, 6.0, 4.0, 1.0,
+        5.0, 6.0, 8.0, 4.0, 3.0, 1.5, 4.0, 4.0, 5.0, 5.0,
+        8.0, 6.0, 5.0, 12.0, 15.0, 8.0, 5.0, 10.0, 8.0, 12.0,
+        15.0, 10.0, 20.0, 15.0, 25.0, 12.0, 15.0, 25.0, 30.0, 25.0,
+        15.0, 20.0, 10.0, 12.0, 25.0, 35.0, 40.0, 30.0, 50.0, 45.0
+    ],
+    "Repeatability (µm)": [
+        2.0, 1.0, 1.5, 1.2, 0.8, 1.5, 3.0, 4.0, 3.0, 0.8,
+        3.0, 4.0, 5.0, 2.5, 2.0, 1.0, 2.5, 2.5, 3.0, 3.0,
+        5.0, 4.0, 3.0, 8.0, 10.0, 5.0, 3.0, 7.0, 5.0, 8.0,
+        10.0, 8.0, 12.0, 10.0, 15.0, 8.0, 10.0, 18.0, 20.0, 15.0,
+        10.0, 12.0, 5.0, 8.0, 15.0, 20.0, 25.0, 20.0, 30.0, 25.0
+    ],
+    "MTBF (Hours)": [
+        2500, 3000, 2800, 2700, 3200, 2900, 2000, 1800, 2100, 3500,
+        2200, 2400, 1900, 2300, 2600, 3100, 2400, 2500, 2100, 2200,
+        2200, 2400, 2500, 1700, 1600, 2100, 2300, 1800, 2000, 1900,
+        1800, 2000, 1700, 1800, 1600, 2100, 1900, 1500, 1400, 1600,
+        1500, 1200, 1000, 1400, 800, 900, 1100, 1300, 1000, 1200
+    ]
+}
 
-# Custom Dark Cyberpunk Theme for Mechanical Labs
+df_machines = pd.DataFrame(data)
+
+# ==========================================
+# 2. UI HEADER & HUD THEME
+# ==========================================
+st.set_page_config(page_title="Kaggle Applied TOPSIS Engine", layout="wide")
 st.markdown("""
     <style>
     .main { background-color: #030712; color: #f3f4f6; }
-    h1, h2, h3 { color: #00ffaa !important; font-family: 'Courier New', monospace; }
-    .stNumberInput label { color: #9ca3af !important; font-weight: bold; }
-    div[data-testid="stMetricValue"] { color: #00ffaa !important; font-family: 'Courier New', monospace; }
-    .status-card { padding: 20px; border-radius: 10px; border: 1px solid #1f2937; margin-bottom: 15px; }
+    h1, h2, h3 { color: #00e5ff !important; font-family: 'Courier New', monospace; }
+    div[data-testid="stMetricValue"] { color: #00e5ff !important; }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("⚡ TELEMETRY DIAGNOSTIC COMPONENT BENCHMARKER")
-st.subheader("Automated Predictive Maintenance Engine v2.4 (Multi-Model Evaluation)")
+st.title("🛰️ KAGGLE-DRIVEN TOPSIS OPTIMIZATION DASHBOARD")
+st.subheader("Data-Linked Machine Tool Selection Architecture via AI4I Operational Parameters")
 
 # ==========================================
-# 2. DATA PIPELINE (PHYSICS SYNTHESIS)
-# ==========================================
-@st.cache_data
-def generate_telemetry_data():
-    np.random.seed(42)
-    n_samples = 6000
-    
-    # Simulating standard operational limits of a milling spindle
-    air_temp = np.random.normal(298, 3, n_samples)
-    process_temp = air_temp + np.random.normal(10, 1.5, n_samples)
-    rot_speed = np.random.normal(1500, 200, n_samples)
-    torque = np.random.normal(40, 12, n_samples)
-    tool_wear = np.random.randint(0, 250, n_samples)
-    
-    # Establish strict physical failure boundaries (Torque Overload or Thermal Runaway)
-    failure = np.zeros(n_samples)
-    for i in range(n_samples):
-        if torque[i] > 65.5 or air_temp[i] > 305 or tool_wear[i] > 210:
-            if np.random.rand() > 0.10:  # 90% true physics failure correlation
-                failure[i] = 1
-                
-    df = pd.DataFrame({
-        'Air_Temp_K': air_temp, 'Process_Temp_K': process_temp,
-        'Rotational_Speed_RPM': rot_speed, 'Torque_Nm': torque,
-        'Tool_Wear_Min': tool_wear, 'Machine_Failure': failure
-    })
-    return df
-
-df = generate_telemetry_data()
-X = df[['Air_Temp_K', 'Process_Temp_K', 'Rotational_Speed_RPM', 'Torque_Nm', 'Tool_Wear_Min']]
-y = df['Machine_Failure']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# ==========================================
-# 3. CONCURRENT MACHINE LEARNING ENGINES
-# ==========================================
-@st.cache_resource
-def build_virtual_test_benches():
-    # Model 1: White-Box Decision Tree
-    dt = DecisionTreeClassifier(max_depth=4, random_state=42)
-    dt.fit(X_train, y_train)
-    
-    # Model 2: Multi-Tree Ensemble Random Forest
-    rf = RandomForestClassifier(n_estimators=100, max_depth=6, random_state=42)
-    rf.fit(X_train, y_train)
-    
-    # Model 3: Linear Feature Boundary (Logistic Regression)
-    lr = LogisticRegression(max_iter=1000, random_state=42)
-    lr.fit(X_train, y_train)
-    
-    return dt, rf, lr
-
-dt_bench, rf_bench, lr_bench = build_virtual_test_benches()
-
-def process_metrics(model):
-    preds = model.predict(X_test)
-    return {
-        'Acc': accuracy_score(y_test, preds),
-        'Prec': precision_score(y_test, preds, zero_division=0),
-        'Rec': recall_score(y_test, preds, zero_division=0)
-    }
-
-m_dt = process_metrics(dt_bench)
-m_rf = process_metrics(rf_bench)
-m_lr = process_metrics(lr_bench)
-
-# ==========================================
-# 4. HIGH-TECH PERFORMANCE HUD DISPLAY
+# 3. INTERACTIVE SENSOR LOADS (KAGGLE PROFILE)
 # ==========================================
 st.write("---")
-st.header("📊 ALGORITHM EFFICIENCY MATRIX")
-st.write("Real-time telemetry evaluation metrics across independent diagnostic engines.")
+st.header("🏭 Real-Time Factory Floor Telemetry (AI4I Kaggle Inputs)")
+st.write("These sliders mimic an live ingestion stream of the standard Kaggle Predictive Maintenance Dataset.")
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("### 🌲 Single-Node Decision Tree")
-    st.metric(label="System Accuracy", value=f"{m_dt['Acc']*100:.2f}%")
-    st.markdown(f"**Precision:** {m_dt['Prec']*100:.1f}% | **Recall:** {m_dt['Rec']*100:.1f}%")
-    st.caption("Fast execution, follows auditable engineering logic steps.")
-
-with col2:
-    st.markdown("### 🚀 Multi-Tree Random Forest (🏆 Top-Rated)")
-    st.metric(label="System Accuracy", value=f"{m_rf['Acc']*100:.2f}%")
-    st.markdown(f"**Precision:** {m_rf['Prec']*100:.1f}% | **Recall:** {m_rf['Rec']*100:.1f}%")
-    st.caption("Ensemble architecture. Extremely robust against sensor anomalies.")
-
-with col3:
-    st.markdown("### 📈 Linear Logistic Regression")
-    st.metric(label="System Accuracy", value=f"{m_lr['Acc']*100:.2f}%")
-    st.markdown(f"**Precision:** {m_lr['Prec']*100:.1f}% | **Recall:** {m_lr['Rec']*100:.1f}%")
-    st.caption("Standard gradient boundary. Missing intricate physics intersections.")
+col_a, col_b, col_c, col_d = st.columns(4)
+with col_a:
+    live_torque = st.slider("🔬 Active Torque Load (Nm)", 0.0, 100.0, 40.0)
+with col_b:
+    live_rpm = st.slider("⚙️ Operating Spindle Speed (RPM)", 0, 5000, 1500)
+with col_c:
+    live_temp = st.slider("🌡️ Thermal Spindle Temperature (K)", 290, 320, 298)
+with col_d:
+    live_wear = st.slider("⏳ Tool Cumulative Wear (Minutes)", 0, 250, 45)
 
 # ==========================================
-# 5. REAL-TIME SENSOR CONTROL BOARD
+# 4. DYNAMIC WEIGHT GENERATION (THE CONTEXT LOGIC)
 # ==========================================
-st.write("---")
-st.header("🎛️ SIMULATED TELEMETRY CONTROL PANEL")
-st.write("Manipulate physical parameters below to execute an immediate stress-test diagnostic across all engines.")
+# Mathematically scale TOPSIS preferences based on what is failing on the shop floor!
+w_price = 0.25
+w_rpm = 0.15 + (0.20 * (live_rpm / 5000.0))    # If shop runs high RPM, prioritize high-RPM capacity
+w_tol = 0.20 + (0.20 * (live_torque / 100.0))  # If torque is crushing components, prioritize rigidity (Tolerance)
+w_rep = 0.20
+w_mtbf = 0.20 + (0.30 * (live_wear / 250.0))   # If parts wear down instantly, prioritize high structural reliability (MTBF)
 
-pane1, pane2 = st.columns(2)
+# Normalize weights so they always equal 1.00
+total_w = w_price + w_rpm + w_tol + w_rep + w_mtbf
+w_price /= total_w; w_rpm /= total_w; w_tol /= total_w; w_rep /= total_w; w_mtbf /= total_w
 
-with pane1:
-    torque = st.number_input("🔬 Torque (Nm)", min_value=-50.0, max_value=600.0, value=42.0, step=0.5)
-    air_temp = st.number_input("🌡️ Air Ambient Temperature (K)", min_value=100.0, max_value=500.0, value=298.15, step=0.1)
-    process_temp = st.number_input("🔥 Process Tool Temperature (K)", min_value=100.0, max_value=500.0, value=308.15, step=0.1)
-
-with pane2:
-    speed = st.number_input("⚙️ Spindle Rotational Speed (RPM)", min_value=0.0, max_value=6000.0, value=1500.0, step=25.0)
-    wear = st.number_input("⏳ Cumulative Tool Wear Time (Minutes)", min_value=0, max_value=500, value=45, step=1)
-
-# Format the input telemetry stream
-telemetry_stream = np.array([[air_temp, process_temp, speed, torque, wear]])
+st.info(f"⚡ **Dynamic TOPSIS Weights Applied:** Capital Cost: **{w_price*100:.1f}%** | Speed Capacity: **{w_rpm*100:.1f}%** | Structural Tolerance: **{w_tol*100:.1f}%** | Repeatability: **{w_rep*100:.1f}%** | Failure Survival (MTBF): **{w_mtbf*100:.1f}%**")
 
 # ==========================================
-# 6. INSTANT TRI-MODEL DIAGNOSIS & VERDICT
+# 5. MATHEMATICAL TOPSIS VECTOR ALGORITHM
 # ==========================================
-st.write("---")
-if st.button("🔴 RUN REAL-TIME LIVE CROSS-MODEL EVALUATION"):
-    st.subheader("⚙️ Live Diagnostic Streams")
-    
-    out1, out2, out3 = st.columns(3)
-    
-    p_dt = dt_bench.predict(telemetry_stream)[0]
-    p_rf = rf_bench.predict(telemetry_stream)[0]
-    p_lr = lr_bench.predict(telemetry_stream)[0]
-    
-    def render_hud_banner(pred):
-        if pred == 0:
-            return "<div style='color:#00ffaa; font-weight:bold; font-size:20px;'>🟢 SYSTEM CRITICAL STATUS: OPERATIONAL</div>"
-        else:
-            return "<div style='color:#ff3333; font-weight:bold; font-size:20px;'>🔴 ALERT: STRUCTURAL FAILURE RISK CAUGHT</div>"
+matrix = df_machines[["Price ($)", "Max Spindle Speed (RPM)", "Tolerance (µm)", "Repeatability (µm)", "MTBF (Hours)"]].values
+rows, cols = matrix.shape
 
-    with out1:
-        st.markdown(f"<div class='status-card'><b>Decision Tree Node Verdict:</b><br><br>{render_hud_banner(p_dt)}</div>", unsafe_allow_html=True)
-    with out2:
-        st.markdown(f"<div class='status-card'><b>Random Forest Node Verdict:</b><br><br>{render_hud_banner(p_rf)}</div>", unsafe_allow_html=True)
-    with out3:
-        st.markdown(f"<div class='status-card'><b>Linear Regression Verdict:</b><br><br>{render_hud_banner(p_lr)}</div>", unsafe_allow_html=True)
+# Step 1: Vector Normalization
+norm_matrix = np.zeros((rows, cols))
+for j in range(cols):
+    norm_matrix[:, j] = matrix[:, j] / np.sqrt(np.sum(matrix[:, j]**2))
 
-    # High-Tech Recommendation Summary Engine
-    st.write("### 🧠 Automated Engineering Recommendation:")
-    votes = [p_dt, p_rf, p_lr]
-    if sum(votes) >= 2:
-        st.error("🚨 CRITICAL MAINTENANCE VERDICT: Multi-engine consensus confirms mechanical or thermal parameters have breached threshold boundaries. Schedule structural teardown and component replacement immediately.")
+# Step 2: Weight Allocation
+weights = np.array([w_price, w_rpm, w_tol, w_rep, w_mtbf])
+weighted_matrix = norm_matrix * weights
+
+# Step 3: Define Ideal Best and Worst vectors (Lower price/tolerance/repeatability is better)
+ideal_best = np.zeros(cols)
+ideal_worst = np.zeros(cols)
+
+criteria_types = ["min", "max", "min", "min", "max"] # min = lower is better, max = higher is better
+for j in range(cols):
+    if criteria_types[j] == "max":
+        ideal_best[j] = np.max(weighted_matrix[:, j])
+        ideal_worst[j] = np.min(weighted_matrix[:, j])
     else:
-        st.success("✅ OPTIMAL PERFORMANCE VERDICT: Core telemetry remains within calculated safe physics bounds. Machine can maintain full operational load.")
+        ideal_best[j] = np.min(weighted_matrix[:, j])
+        ideal_worst[j] = np.max(weighted_matrix[:, j])
+
+# Step 4: Euclidean Distance Calculations
+s_best = np.sqrt(np.sum((weighted_matrix - ideal_best)**2, axis=1))
+s_worst = np.sqrt(np.sum((weighted_matrix - ideal_worst)**2, axis=1))
+
+# Step 5: Closeness Coefficient Computation
+performance_score = s_worst / (s_best + s_worst)
+
+# Insert back into DataFrame
+df_machines["TOPSIS Performance Score"] = performance_score
+df_machines["Rank"] = df_machines["TOPSIS Performance Score"].rank(ascending=False).astype(int)
+final_df = df_machines.sort_values("Rank").reset_index(drop=True)
+
+# ==========================================
+# 6. GRAPH INTERFACES (RADAR DIAGNOSTICS)
+# ==========================================
+st.write("---")
+st.header("🏆 Optimal Machine Procurement Standings")
+
+top3 = final_df.head(3)
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric("🥇 Top Ranked Choice", f"#{top3.loc[0, 'Rank']} {top3.loc[0, 'Machine Name']}")
+with col2:
+    st.metric("🥈 Backup System", f"#{top3.loc[1, 'Rank']} {top3.loc[1, 'Machine Name']}")
+with col3:
+    st.metric("🥉 Third Tier System", f"#{top3.loc[2, 'Rank']} {top3.loc[2, 'Machine Name']}")
+
+# Renders dynamic analytical radar visualization
+radar_data = []
+categories = ["Price Parameter", "Velocity Boundary", "Precision Gap", "Axis Drift", "Longevity Score"]
+
+# Add Ideal Target
+radar_data.append(go.Scatterpolar(
+    r=[1, 1, 1, 1, 1], theta=categories, fill='toself', name='Target Reference Limit'
+))
+
+for i, row in top3.iterrows():
+    # Scale variables between 0-1 for proportional visual plotting on the map
+    radar_data.append(go.Scatterpolar(
+        r=[0.8 - (row["Price ($)"]/500000), row["Max Spindle Speed (RPM)"]/50000, 
+           1 - (row["Tolerance (µm)"]/50), 1 - (row["Repeatability (µm)"]/30), row["MTBF (Hours)"]/4000],
+        theta=categories, fill='toself', name=f"Rank {row['Rank']}: {row['Machine Name']}"
+    ))
+
+fig_radar = go.Figure(data=radar_data)
+fig_radar.update_layout(
+    polar=dict(radialaxis=dict(visible=False)), showlegend=True,
+    title="Structural Comparison Profiles (Closer to Edge = Better Engineering Alignment)"
+)
+st.plotly_chart(fig_radar, use_container_width=True)
+
+# Output final data structure matrix
+st.write("### Complete Evaluated Machinery Matrix")
+st.dataframe(final_df[["Rank", "Machine Name", "TOPSIS Performance Score", "Price ($)", "Max Spindle Speed (RPM)", "Tolerance (µm)", "MTBF (Hours)"]])
